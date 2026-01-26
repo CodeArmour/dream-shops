@@ -1,6 +1,6 @@
 package com.dailycode.dreamshops.service.product;
 
-import com.dailycode.dreamshops.excepion.ProductNotFoundException;
+import com.dailycode.dreamshops.excepion.ResourceNotFoundException;
 import com.dailycode.dreamshops.model.Category;
 import com.dailycode.dreamshops.model.Product;
 import com.dailycode.dreamshops.repository.CategoryRepository;
@@ -46,14 +46,14 @@ public class ProductService implements IProductService{
     @Override
     public Product getProductById(Long id) {
         return productRepository.findById(id)
-                .orElseThrow(()-> new ProductNotFoundException("Product not found!"));
+                .orElseThrow(()-> new ResourceNotFoundException("Product not found!"));
     }
 
     @Override
     public void deleteProductById(Long id) {
         productRepository.findById(id)
                 .ifPresentOrElse(productRepository::delete,
-                        ()-> {throw new ProductNotFoundException("Product not found!");
+                        ()-> {throw new ResourceNotFoundException("Product not found!");
         });
     }
 
@@ -62,7 +62,7 @@ public class ProductService implements IProductService{
         return productRepository.findById(productId)
                 .map(existingProduct -> updateExistingProduct(existingProduct,request))
                 .map(productRepository::save)
-                .orElseThrow(()-> new ProductNotFoundException("Product not found!"));
+                .orElseThrow(()-> new ResourceNotFoundException("Product not found!"));
     }
 
     private Product updateExistingProduct(Product existingProduct, UpdateProductRequest request) {
@@ -85,7 +85,7 @@ public class ProductService implements IProductService{
 
     @Override
     public List<Product> getProductsByCategory(String category) {
-        return productRepository.findByCategory(category);
+        return productRepository.findByCategoryName(category);
     }
 
     @Override
@@ -95,7 +95,7 @@ public class ProductService implements IProductService{
 
     @Override
     public List<Product> getProductsByCategoryAndBrands(String category, String brand) {
-        return productRepository.findByCategoryAndBrand(category, brand);
+        return productRepository.findByCategoryNameAndBrand(category, brand);
     }
 
     @Override
@@ -112,4 +112,6 @@ public class ProductService implements IProductService{
     public Long countProductsByBrandAndName(String brand, String name) {
         return productRepository.countByBrandAndName(brand, name);
     }
+
+
 }
