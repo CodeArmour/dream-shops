@@ -2,8 +2,10 @@ package com.dailycode.dreamshops.controller;
 
 
 import com.dailycode.dreamshops.excepion.ResourceNotFoundException;
+import com.dailycode.dreamshops.helper.PatchResult;
 import com.dailycode.dreamshops.model.Product;
 import com.dailycode.dreamshops.request.AddProductRequest;
+import com.dailycode.dreamshops.request.PatchProductRequest;
 import com.dailycode.dreamshops.request.UpdateProductRequest;
 import com.dailycode.dreamshops.response.ApiResponse;
 import com.dailycode.dreamshops.service.product.IProductService;
@@ -49,7 +51,7 @@ public class ProductController{
         }
     }
 
-    @PutMapping("/product{id}")
+    @PutMapping("/product/{id}")
     public ResponseEntity<ApiResponse> updateProduct(@PathVariable Long id, @RequestBody UpdateProductRequest product){
         try {
             Product updatedProduct = productService.updateProduct(product, id);
@@ -58,6 +60,26 @@ public class ProductController{
             return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
         }
     }
+
+    @PatchMapping("/product/{id}")
+    public ResponseEntity<ApiResponse> patchUpdateProduct(
+            @PathVariable Long id,
+            @RequestBody PatchProductRequest request
+    ) {
+        PatchResult result = productService.updatePatchProduct(request, id);
+
+        String message;
+        if (result.getUpdatedFields().isEmpty()) {
+            message = "No fields were updated.";
+        } else {
+            message = "Product updated successfully! " +
+                    String.join(", ", result.getUpdatedFields()) +
+                    " updated.";
+        }
+
+        return ResponseEntity.ok(new ApiResponse(message, result.getProduct()));
+    }
+
 
     @DeleteMapping("/product/{id}")
     public ResponseEntity<ApiResponse> deleteProduct(@PathVariable Long id){

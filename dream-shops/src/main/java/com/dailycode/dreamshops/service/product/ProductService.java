@@ -1,15 +1,18 @@
 package com.dailycode.dreamshops.service.product;
 
 import com.dailycode.dreamshops.excepion.ResourceNotFoundException;
+import com.dailycode.dreamshops.helper.PatchResult;
 import com.dailycode.dreamshops.model.Category;
 import com.dailycode.dreamshops.model.Product;
 import com.dailycode.dreamshops.repository.CategoryRepository;
 import com.dailycode.dreamshops.repository.ProductRepository;
 import com.dailycode.dreamshops.request.AddProductRequest;
+import com.dailycode.dreamshops.request.PatchProductRequest;
 import com.dailycode.dreamshops.request.UpdateProductRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,6 +79,49 @@ public class ProductService implements IProductService{
         existingProduct.setCategory(category);
 
         return existingProduct;
+    }
+
+
+    @Override
+    public PatchResult updatePatchProduct(PatchProductRequest request, Long productId) {
+        return productRepository.findById(productId)
+                .map(existing -> {
+                    List<String> updatedFields = new ArrayList<>();
+
+                    if (request.getName() != null) {
+                        existing.setName(request.getName());
+                        updatedFields.add("name");
+                    }
+                    if (request.getBrand() != null) {
+                        existing.setBrand(request.getBrand());
+                        updatedFields.add("brand");
+                    }
+                    if (request.getPrice() != null) {
+                        existing.setPrice(request.getPrice());
+                        updatedFields.add("price");
+                    }
+                    if (request.getInventory() != null) {
+                        existing.setInventory(request.getInventory());
+                        updatedFields.add("inventory");
+                    }
+                    if (request.getDescription() != null) {
+                        existing.setDescription(request.getDescription());
+                        updatedFields.add("description");
+                    }
+
+                    if (request.getCategory() != null && request.getCategory().getName() != null) {
+                        Category category = categoryRepository.findByName(request.getCategory().getName());
+                        if (category == null) {
+                            throw new ResourceNotFoundException("Category not found");
+                        }
+                        existing.setCategory(category);
+                        updatedFields.add("category");
+                    }
+
+                    productRepository.save(existing);
+                    return new PatchResult(existing, updatedFields);
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
     }
 
     @Override
