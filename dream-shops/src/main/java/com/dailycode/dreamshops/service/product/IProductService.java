@@ -1,6 +1,8 @@
 package com.dailycode.dreamshops.service.product;
 
+import com.dailycode.dreamshops.dto.ProductDto;
 import com.dailycode.dreamshops.helper.PatchResult;
+import com.dailycode.dreamshops.model.Category;
 import com.dailycode.dreamshops.model.Product;
 import com.dailycode.dreamshops.request.AddProductRequest;
 import com.dailycode.dreamshops.request.PatchProductRequest;
@@ -25,4 +27,7 @@ public interface IProductService {
 
     Long countProductsByBrandAndName(String brand, String name);
 
+    List<ProductDto> getConvertedProducts(List<Product> products);
+
+    ProductDto convertToDto(Product product);
 }

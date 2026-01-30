@@ -23,8 +23,8 @@ public class Product {
     private int inventory;
     private String description;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "category_id")
+    @ManyToOne(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -37,9 +37,5 @@ public class Product {
         this.inventory = inventory;
         this.description = description;
         this.category = category;
-
-
-
-
     }
 }

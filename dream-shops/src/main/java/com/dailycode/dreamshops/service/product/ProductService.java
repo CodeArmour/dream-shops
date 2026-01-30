@@ -1,15 +1,20 @@
 package com.dailycode.dreamshops.service.product;
 
+import com.dailycode.dreamshops.dto.ImageDto;
+import com.dailycode.dreamshops.dto.ProductDto;
 import com.dailycode.dreamshops.excepion.ResourceNotFoundException;
 import com.dailycode.dreamshops.helper.PatchResult;
 import com.dailycode.dreamshops.model.Category;
+import com.dailycode.dreamshops.model.Image;
 import com.dailycode.dreamshops.model.Product;
 import com.dailycode.dreamshops.repository.CategoryRepository;
+import com.dailycode.dreamshops.repository.ImageRepository;
 import com.dailycode.dreamshops.repository.ProductRepository;
 import com.dailycode.dreamshops.request.AddProductRequest;
 import com.dailycode.dreamshops.request.PatchProductRequest;
 import com.dailycode.dreamshops.request.UpdateProductRequest;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,6 +26,8 @@ import java.util.Optional;
 public class ProductService implements IProductService{
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ImageRepository imageRepository;
+    private final ModelMapper mapper;
 
     @Override
     public Product addProduct(AddProductRequest request) {
@@ -54,10 +61,10 @@ public class ProductService implements IProductService{
 
     @Override
     public void deleteProductById(Long id) {
-        productRepository.findById(id)
-                .ifPresentOrElse(productRepository::delete,
-                        ()-> {throw new ResourceNotFoundException("Product not found!");
-        });
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found!"));
+
+        productRepository.delete(product); // will not touch category
     }
 
     @Override
@@ -159,5 +166,19 @@ public class ProductService implements IProductService{
         return productRepository.countByBrandAndName(brand, name);
     }
 
+    @Override
+    public List<ProductDto> getConvertedProducts(List<Product> products) {
+        return products.stream().map(this::convertToDto).toList();
+    }
 
+    @Override
+    public ProductDto convertToDto(Product product) {
+        ProductDto productDto = mapper.map(product, ProductDto.class);
+        List<Image> images = imageRepository.findByProductId(product.getId());
+        List<ImageDto> imageDtos = images.stream()
+                .map(image -> mapper.map(image, ImageDto.class))
+                .toList();
+        productDto.setImages(imageDtos);
+        return productDto;
+    }
 }

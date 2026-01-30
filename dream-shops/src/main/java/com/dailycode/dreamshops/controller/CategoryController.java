@@ -64,12 +64,14 @@ public class CategoryController {
     }
 
     @DeleteMapping("/category/delete/{id}")
-    public ResponseEntity<ApiResponse> deleteCategoryById(@PathVariable Long id){
+    public ResponseEntity<ApiResponse> deleteCategoryById(@PathVariable Long id) {
         try {
             categoryService.deleteCategoryById(id);
-            return ResponseEntity.ok(new ApiResponse("Found!", null));
-        } catch (ResourceNotFoundException e){
+            return ResponseEntity.ok(new ApiResponse("Category deleted successfully", id));
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(409).body(new ApiResponse(e.getMessage(), null));
         }
     }
 

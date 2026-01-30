@@ -4,6 +4,7 @@ import com.dailycode.dreamshops.excepion.AlreadyExistsException;
 import com.dailycode.dreamshops.excepion.ResourceNotFoundException;
 import com.dailycode.dreamshops.model.Category;
 import com.dailycode.dreamshops.repository.CategoryRepository;
+import com.dailycode.dreamshops.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CategoryService implements ICategoryService{
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
 
     @Override
     public Category getCategoryById(Long id) {
@@ -53,8 +55,12 @@ public class CategoryService implements ICategoryService{
 
     @Override
     public void deleteCategoryById(Long id) {
-        categoryRepository.findById(id).ifPresentOrElse(categoryRepository::delete, ()->{
-            throw new ResourceNotFoundException("Category not found!");
-        });
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found!"));
+
+        if (productRepository.existsByCategoryId(id)) {
+            throw new IllegalStateException("Cannot delete category because it still has products.");
+        }
+        categoryRepository.delete(category);
     }
 }
